@@ -1228,6 +1228,30 @@ void printHelp(const char *str)
 	console.print("Available commands:\r\n");
 }
 
+void testCommand(const char *str)
+{
+	ArgPair args[8];
+	int argc = Console::parseArgs(str, args, 8);
+	for (int i = 0; i < argc; ++i)
+	{
+		console.print("Flag: ");
+		char flagStr[2] = {args[i].flag, 0};
+		console.print(flagStr);
+		console.print(" Value: ");
+		if (args[i].value != INT32_MIN)
+		{
+			char buf[16];
+			snprintf(buf, sizeof(buf), "%ld", (long)args[i].value);
+			console.print(buf);
+		}
+		else
+		{
+			console.print("(no value)");
+		}
+		console.print("\r\n");
+	}
+}
+
 /**
  * @brief Function implementing the consoleTask thread.
  * @param argument: Not used
@@ -1240,6 +1264,7 @@ void startConsoleTask(void *argument)
 	console.init();
 	// Register a free function
 	console.registerCommand("help", printHelp);
+	console.registerCommand("test", testCommand);
 
 	ArgPair args[8];
 	int argc = Console::parseArgs("-h 11 -D -a -l 22", args, 8);

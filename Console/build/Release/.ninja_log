@@ -174,3 +174,5 @@
 1628	3086	1750424916681775190	cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal_hrtim.c.obj	dcba22ca95881a19
 4	411	1750425071442946045	CMakeFiles/Console.dir/Core/Src/console.cpp.obj	9c3f729c4a6b8984
 411	444	1750425071474946701	Console.elf	1be9bb99ead02617
+3	481	1750425941100811938	CMakeFiles/Console.dir/Core/Src/main.cpp.obj	2606bce0b01e32b6
+481	515	1750425941132812596	Console.elf	1be9bb99ead02617
