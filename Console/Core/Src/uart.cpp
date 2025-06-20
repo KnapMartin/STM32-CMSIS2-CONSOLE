@@ -6,6 +6,7 @@ Uart::Uart(UART_HandleTypeDef *huart)
     , m_semTx(nullptr)
     , m_queueRx(nullptr)
     , m_mutexTx(nullptr)
+    , m_isInitialized(false)
 {
 }
 
@@ -19,15 +20,17 @@ IUart::Status Uart::init()
     {
         return IUart::Status::ERROR; // UART handle is not initialized
     }
-    if(m_semTx == nullptr || m_queueRx == nullptr || m_mutexTx == nullptr)
+    if (m_semTx == nullptr || m_queueRx == nullptr || m_mutexTx == nullptr)
     {
         return IUart::Status::ERROR; // Semaphore, queue, or mutex not initialized
     }
 
-    if (HAL_UART_Receive_IT(m_huart, const_cast<uint8_t*>(&m_rxChar), 1) != HAL_OK)
+    if (HAL_UART_Receive_IT(m_huart, const_cast<uint8_t *>(&m_rxChar), 1) != HAL_OK)
     {
         return IUart::Status::ERROR; // Failed to start UART reception
     }
+
+    m_isInitialized = true; // Mark UART as initialized
 
     return IUart::Status::OK; // Initialization successful
 }
@@ -44,7 +47,7 @@ IUart::Status Uart::transmit(char *data, const std::size_t len) // TODO: replace
         return IUart::Status::ERROR; // Failed to acquire mutex
     }
 
-    if (HAL_UART_Transmit_IT(m_huart, reinterpret_cast<uint8_t*>(data), len) != HAL_OK)
+    if (HAL_UART_Transmit_IT(m_huart, reinterpret_cast<uint8_t *>(data), len) != HAL_OK)
     {
         osMutexRelease(*m_mutexTx);
         return IUart::Status::ERROR; // Transmission failed
@@ -63,14 +66,14 @@ IUart::Status Uart::transmit(char *data, const std::size_t len) // TODO: replace
 
     return IUart::Status::OK; // Transmission successful
 }
-IUart::Status Uart::receive(char *data, const std::size_t len) // TODO: replace with etl::string
+
+IUart::Status Uart::receive(char *data, std::size_t *len) // TODO: replace with etl::string
 {
-    if (data == nullptr || len == 0)
+    if (data == nullptr || len == nullptr || *len == 0)
     {
         return IUart::Status::NONE; // No data to receive
     }
 
-    // TODO: replace with etl::string
     char rxChar;
     std::size_t rxIdx{0};
     char recBuffer[RX_BUFFER_SIZE] = {0};
@@ -82,22 +85,18 @@ IUart::Status Uart::receive(char *data, const std::size_t len) // TODO: replace 
             return IUart::Status::ERROR; // Timeout or failed to receive data
         }
 
-        recBuffer[rxIdx++] = rxChar;
-        if (rxIdx >= len || rxChar == '\n' || rxChar == '\r') // End of message condition
+        if (rxChar == '\n' || rxChar == '\r') // End of line
         {
-            // copy received data to output buffer
-            for (std::size_t i = 0; i < rxIdx && i < len - 1; ++i)
+            recBuffer[rxIdx] = '\0'; // Null-terminate the string
+            *len = rxIdx + 1; // Set the length of the received data
+            memcpy(data, recBuffer, *len); // Copy the received data to the output buffer
+            if (osMessageQueueReset(*m_queueRx) != osOK)
             {
-                data[i] = recBuffer[i];
+                return IUart::Status::ERROR; // Failed to reset the message queue
             }
-            data[(rxIdx < len - 1) ? rxIdx : (len - 1)] = '\0'; // Null-terminate safely
-            
-            break; // Exit the loop when enough data is received or end of message
+            break; // Exit the loop on end of line character
         }
-        if (rxIdx >= RX_BUFFER_SIZE)
-        {
-            return IUart::Status::ERROR; // Buffer overflow
-        }
+        recBuffer[rxIdx++] = rxChar;
     }
 
     return IUart::Status::OK; // Reception successful
@@ -111,14 +110,14 @@ IUart::Status Uart::handleRxInterrupt(UART_HandleTypeDef *huart)
         if (m_rxChar != 0)
         {
             // Send the received character to the message queue
-            if (osMessageQueuePut(*m_queueRx, (const void*)&m_rxChar, 0, 0) != osOK)
+            if (osMessageQueuePut(*m_queueRx, (const void *)&m_rxChar, 0, 0) != osOK)
             {
                 return IUart::Status::ERROR;
             }
         }
 
         // Re-enable UART reception interrupt
-        if (HAL_UART_Receive_IT(m_huart, const_cast<uint8_t*>(&m_rxChar), 1) != HAL_OK)
+        if (HAL_UART_Receive_IT(m_huart, const_cast<uint8_t *>(&m_rxChar), 1) != HAL_OK)
         {
             return IUart::Status::ERROR;
         }
@@ -140,5 +139,3 @@ IUart::Status Uart::handleTxInterrupt(UART_HandleTypeDef *huart)
 
     return IUart::Status::OK;
 }
-
-

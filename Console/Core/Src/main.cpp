@@ -25,6 +25,7 @@
 
 #include "logger.h"
 #include "uart.h"
+#include "console.h"
 
 /* USER CODE END Includes */
 
@@ -125,6 +126,18 @@ const osThreadAttr_t loggerTask_attributes = {
 	.stack_size = sizeof(loggerTaskBuffer),
 	.priority = (osPriority_t)osPriorityLow,
 };
+/* Definitions for consoleTask */
+osThreadId_t consoleTaskHandle;
+uint32_t consoleTaskBuffer[128];
+osStaticThreadDef_t consoleTaskControlBlock;
+const osThreadAttr_t consoleTask_attributes = {
+	.name = "consoleTask",
+	.cb_mem = &consoleTaskControlBlock,
+	.cb_size = sizeof(consoleTaskControlBlock),
+	.stack_mem = &consoleTaskBuffer[0],
+	.stack_size = sizeof(consoleTaskBuffer),
+	.priority = (osPriority_t)osPriorityLow,
+};
 /* Definitions for queueLogger */
 osMessageQueueId_t queueLoggerHandle;
 uint8_t queueLoggerBuffer[32 * sizeof(LogMessage)];
@@ -135,17 +148,16 @@ const osMessageQueueAttr_t queueLogger_attributes = {
 	.cb_size = sizeof(queueLoggerControlBlock),
 	.mq_mem = &queueLoggerBuffer,
 	.mq_size = sizeof(queueLoggerBuffer)};
-	/* Definitions for queueUart */
+/* Definitions for queueUart */
 osMessageQueueId_t queueUartHandle;
-uint8_t queueUartBuffer[ 64 * sizeof( uint8_t ) ];
+uint8_t queueUartBuffer[64 * sizeof(uint8_t)];
 osStaticMessageQDef_t queueUartControlBlock;
 const osMessageQueueAttr_t queueUart_attributes = {
-  .name = "queueUart",
-  .cb_mem = &queueUartControlBlock,
-  .cb_size = sizeof(queueUartControlBlock),
-  .mq_mem = &queueUartBuffer,
-  .mq_size = sizeof(queueUartBuffer)
-};
+	.name = "queueUart",
+	.cb_mem = &queueUartControlBlock,
+	.cb_size = sizeof(queueUartControlBlock),
+	.mq_mem = &queueUartBuffer,
+	.mq_size = sizeof(queueUartBuffer)};
 /* Definitions for mutexUart */
 osMutexId_t mutexUartHandle;
 osStaticMutexDef_t mutexUartControlBlock;
@@ -158,9 +170,9 @@ const osMutexAttr_t mutexUart_attributes = {
 osSemaphoreId_t semUartHandle;
 osStaticSemaphoreDef_t semUartControlBlock;
 const osSemaphoreAttr_t semUart_attributes = {
-  .name = "semUart",
-  .cb_mem = &semUartControlBlock,
-  .cb_size = sizeof(semUartControlBlock),
+	.name = "semUart",
+	.cb_mem = &semUartControlBlock,
+	.cb_size = sizeof(semUartControlBlock),
 };
 /* USER CODE BEGIN PV */
 
@@ -186,6 +198,7 @@ void startTask1(void *argument);
 void startTask2(void *argument);
 void startTask3(void *argument);
 void startLoggerTask(void *argument);
+void startConsoleTask(void *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -195,6 +208,7 @@ void startLoggerTask(void *argument);
 /* USER CODE BEGIN 0 */
 
 Uart uart(&huart3);
+Console console(uart);
 
 extern "C" int _write(int file, char *ptr, int len)
 {
@@ -280,7 +294,7 @@ int main(void)
 	/* creation of queueLogger */
 	queueLoggerHandle = osMessageQueueNew(32, sizeof(LogMessage), &queueLogger_attributes);
 
-	queueUartHandle = osMessageQueueNew (64, sizeof(uint8_t), &queueUart_attributes);
+	queueUartHandle = osMessageQueueNew(64, sizeof(uint8_t), &queueUart_attributes);
 
 	/* USER CODE BEGIN RTOS_QUEUES */
 	/* add queues, ... */
@@ -301,6 +315,8 @@ int main(void)
 
 	/* creation of loggerTask */
 	loggerTaskHandle = osThreadNew(startLoggerTask, NULL, &loggerTask_attributes);
+
+	consoleTaskHandle = osThreadNew(startConsoleTask, NULL, &consoleTask_attributes);
 
 	/* USER CODE BEGIN RTOS_THREADS */
 	/* add threads, ... */
@@ -1116,7 +1132,7 @@ void startTask0(void *argument)
 	for (;;)
 	{
 		HAL_GPIO_TogglePin(LED_BLUE_GPIO_Port, LED_BLUE_Pin);
-		LOG_INFO("blue LED toggled");
+		// LOG_INFO("blue LED toggled");
 		osDelay(500); // Toggle LED every 500 ms
 	}
 	/* USER CODE END 5 */
@@ -1137,7 +1153,7 @@ void startTask1(void *argument)
 	for (;;)
 	{
 		HAL_GPIO_TogglePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin);
-		LOG_INFO("green LED toggled");
+		// LOG_INFO("green LED toggled");
 		osDelay(500); // Toggle LED every 500 ms
 	}
 	/* USER CODE END startTask1 */
@@ -1158,7 +1174,7 @@ void startTask2(void *argument)
 	for (;;)
 	{
 		HAL_GPIO_TogglePin(LED_RED_GPIO_Port, LED_RED_Pin);
-		LOG_INFO("red LED toggled");
+		// LOG_INFO("red LED toggled");
 		osDelay(500); // Toggle LED every 500 ms
 	}
 	/* USER CODE END startTask2 */
@@ -1179,7 +1195,7 @@ void startTask3(void *argument)
 	for (;;)
 	{
 		HAL_GPIO_TogglePin(LED_ORANGE_GPIO_Port, LED_ORANGE_Pin);
-		LOG_INFO("orange LED toggled");
+		// LOG_INFO("orange LED toggled");
 		osDelay(500); // Toggle LED every 500 ms
 	}
 	/* USER CODE END startTask3 */
@@ -1201,6 +1217,38 @@ void startLoggerTask(void *argument)
 		LOG_task();
 	}
 	/* USER CODE END startLoggerTask */
+}
+
+/* USER CODE BEGIN Header_startConsoleTask */
+
+/**
+ * @brief Function implementing the consoleTask thread.
+ * @param argument: Not used
+ * @retval None
+ */
+/* USER CODE END Header_startConsoleTask */
+void startConsoleTask(void *argument)
+{
+	// console.init();
+	// console.registerCommand("help", [](const std::string &args)
+	// {
+	// 	std::string msg1 = "Available commands:\r\n";
+	// 	std::string msg2 = "  pulsectl -p <pulse> -h <hold>\r\n";
+	// 	console.print(msg1);
+	// 	console.print(msg2);
+	// });
+
+	for (;;)
+	{
+		// console.run();
+		char buff[32];
+		std::size_t bytesRead;
+		uart.receive(buff, &bytesRead);
+		printf("%s %d\r\n", buff, bytesRead);
+
+		osDelay(10); // Allow other tasks to run
+	}
+	/* USER CODE END startConsoleTask */
 }
 
 /**

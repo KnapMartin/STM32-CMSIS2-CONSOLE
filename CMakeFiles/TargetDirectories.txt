@@ -1,7 +1,0 @@
-/home/knap-linux/Documents/git/STM32-CMSIS2-CONSOLE/Console/CMakeFiles/Console.dir
-/home/knap-linux/Documents/git/STM32-CMSIS2-CONSOLE/Console/CMakeFiles/edit_cache.dir
-/home/knap-linux/Documents/git/STM32-CMSIS2-CONSOLE/Console/CMakeFiles/rebuild_cache.dir
-/home/knap-linux/Documents/git/STM32-CMSIS2-CONSOLE/Console/cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir
-/home/knap-linux/Documents/git/STM32-CMSIS2-CONSOLE/Console/cmake/stm32cubemx/CMakeFiles/FreeRTOS.dir
-/home/knap-linux/Documents/git/STM32-CMSIS2-CONSOLE/Console/cmake/stm32cubemx/CMakeFiles/edit_cache.dir
-/home/knap-linux/Documents/git/STM32-CMSIS2-CONSOLE/Console/cmake/stm32cubemx/CMakeFiles/rebuild_cache.dir

@@ -49,6 +49,7 @@ target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     Core/Src/logger.c
     Core/Src/uart.cpp
+    Core/Src/console.cpp
 )
 
 # Add include paths

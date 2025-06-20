@@ -5,8 +5,10 @@
 #include "iuart.h"
 #include "cmsis_os2.h"
 #include <cstdint>
+#include <cstring>
+#include <stdio.h>
 
-#define RX_BUFFER_SIZE 32 // Size of the receive buffer
+constexpr std::size_t RX_BUFFER_SIZE{64}; // Size of the receive buffer
 
 class Uart : public IUart
 {
@@ -19,9 +21,10 @@ class Uart : public IUart
         void setHandleMutexTx(osMutexId_t *mutexTx) {m_mutexTx = mutexTx;}
         IUart::Status init(); 
         IUart::Status transmit(char* data, const std::size_t len) override;
-        IUart::Status receive(char* data, const std::size_t len) override;
+        IUart::Status receive(char* data, std::size_t *len) override;
         IUart::Status handleRxInterrupt(UART_HandleTypeDef *huart);
         IUart::Status handleTxInterrupt(UART_HandleTypeDef *huart);
+        bool isInitialized() const { return m_isInitialized; }
 
     private:
         volatile uint8_t m_rxChar;
@@ -29,6 +32,7 @@ class Uart : public IUart
         osSemaphoreId_t *m_semTx;
         osMessageQueueId_t *m_queueRx;
         osMutexId_t *m_mutexTx;
+        bool m_isInitialized;
 };
 
 
