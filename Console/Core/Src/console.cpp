@@ -77,6 +77,7 @@ void Console::processLine(const char *line)
     if (line == nullptr || line[0] == '\0')
     {
         prompt();
+        print("\r\n");
         return;
     }
 
@@ -91,6 +92,7 @@ void Console::processLine(const char *line)
         {
             handler(line); // Call the command handler
             prompt();      // Prompt for the next command
+            print("\r\n"); // Print a new line after command execution
             return;
         }
     }
