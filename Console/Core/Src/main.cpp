@@ -1223,6 +1223,11 @@ void startLoggerTask(void *argument)
 
 /* USER CODE BEGIN Header_startConsoleTask */
 
+void printHelp(const char* str)
+{
+	console.print("help func\r\n");
+}
+
 /**
  * @brief Function implementing the consoleTask thread.
  * @param argument: Not used
@@ -1231,21 +1236,16 @@ void startLoggerTask(void *argument)
 /* USER CODE END Header_startConsoleTask */
 void startConsoleTask(void *argument)
 {
-	// console.init();
-	// console.registerCommand("help", [](const std::string &args)
-	// {
-	// 	std::string msg1 = "Available commands:\r\n";
-	// 	std::string msg2 = "  pulsectl -p <pulse> -h <hold>\r\n";
-	// 	console.print(msg1);
-	// 	console.print(msg2);
-	// });
+	console.init();
+	console.registerCommand("help", printHelp);
 
 	for (;;)
 	{
-		// console.run();
-		char buff[32];
-		uart.receive(buff);
-		uart.transmit(buff, strlen(buff));
+		console.run();
+
+		// char buff[32];
+		// uart.receive(buff);
+		// uart.transmit(buff, strlen(buff));
 
 		osDelay(10); // Allow other tasks to run
 	}
