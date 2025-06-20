@@ -27,6 +27,8 @@
 #include "uart.h"
 #include "console.h"
 
+#include <stdio.h>
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -1242,9 +1244,8 @@ void startConsoleTask(void *argument)
 	{
 		// console.run();
 		char buff[32];
-		std::size_t bytesRead;
-		uart.receive(buff, &bytesRead);
-		printf("%s %d\r\n", buff, bytesRead);
+		uart.receive(buff);
+		uart.transmit(buff, strlen(buff));
 
 		osDelay(10); // Allow other tasks to run
 	}

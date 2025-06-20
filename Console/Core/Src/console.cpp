@@ -24,15 +24,19 @@ Console::Status Console::init()
     return Status::OK; // Initialization successful
 }
 
-Console::Status Console::registerCommand(const std::string &command, CommandHandler handler)
+Console::Status Console::registerCommand(const char *command, CommandHandler handler)
 {
-    if (m_commandCount >= MAX_COMMANDS)
+    if (m_commandCount >= CONS_MAX_COMMANDS)
     {
         // Optionally handle error, e.g., log or assert
         return Status::ERROR;
     }
 
-    m_commands[m_commandCount++] = std::make_tuple(command, handler);
+    CommandEntry newCommand;
+    newCommand.command = command;
+    newCommand.handler = handler;
+
+    m_commands[m_commandCount++] = newCommand;
     // Optionally indicate success, e.g., log or callback
     return Status::OK;
 }
@@ -40,29 +44,27 @@ Console::Status Console::registerCommand(const std::string &command, CommandHand
 Console::Status Console::run()
 {
     char buffer[256]; // Buffer for receiving data
-    std::size_t len = 0;
 
     // Receive data from UART
-    // if (m_uart.receive(buffer, sizeof(buffer)) != IUart::Status::OK)
-    // {
-    //     return Status::ERROR; // Reception failed
-    // }
+    if (m_uart.receive(buffer) != IUart::Status::OK)
+    {
+        return Status::ERROR; // Reception failed
+    }
 
     // Process the received line
-    std::string line(buffer, len);
-    processLine(line);
+    processLine(buffer);
 
     return Status::OK; // Run successful
 }
 
-Console::Status Console::print(std::string &str)
+Console::Status Console::print(const char *str)
 {
-    if (str.empty())
+    if (str == nullptr || str[0] == '\0')
     {
         return Status::NONE; // No data to print
     }
 
-    if (m_uart.transmit(str.data(), str.size()) != IUart::Status::OK)
+    if (m_uart.transmit(const_cast<char *>(str), strlen(str)) != IUart::Status::OK)
     {
         return Status::ERROR; // Transmission failed
     }
@@ -70,10 +72,10 @@ Console::Status Console::print(std::string &str)
     return Status::OK; // Print successful
 }
 
-void Console::processLine(const std::string &line)
+void Console::processLine(const char *line)
 {
     // Check if the line is empty
-    if (line.empty())
+    if (line == nullptr || line[0] == '\0')
     {
         prompt();
         return;
@@ -82,10 +84,11 @@ void Console::processLine(const std::string &line)
     // Iterate through registered commands to find a match
     for (std::size_t i = 0; i < m_commandCount; ++i)
     {
-        const auto &command = std::get<0>(m_commands[i]);
-        const auto &handler = std::get<1>(m_commands[i]);
+        const char *command = m_commands[i].command;
+        CommandHandler handler = m_commands[i].handler;
 
-        if (line.compare(0, command.length(), command) == 0)
+        size_t cmdLen = strlen(command);
+        if (strncmp(line, command, cmdLen) == 0)
         {
             handler(line); // Call the command handler
             prompt(); // Prompt for the next command
@@ -94,13 +97,13 @@ void Console::processLine(const std::string &line)
     }
 
     // If no command matched, print an error message
-    std::string errorMsg = "Unknown command: " + line + "\n";
+    const char errorMsg[] = "Unknown command: ";
     print(errorMsg);
     prompt(); // Prompt for the next command
 }
 
 void Console::prompt()
 {
-    std::string promptMsg = "> ";
+    const char promptMsg[] = "> ";
     print(promptMsg); // Print the prompt message
 }

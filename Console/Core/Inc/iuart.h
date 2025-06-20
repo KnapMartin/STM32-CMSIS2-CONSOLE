@@ -16,8 +16,8 @@ class IUart
         };
 
         virtual ~IUart() = default;
-        virtual Status transmit(char* data, const std::size_t len) = 0;
-        virtual Status receive(char* data, std::size_t *len) = 0;
+        virtual Status transmit(const char* data, const std::size_t len) = 0;
+        virtual Status receive(char* data) = 0;
 };
 
 #endif

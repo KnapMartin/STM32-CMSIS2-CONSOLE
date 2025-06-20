@@ -35,7 +35,7 @@ IUart::Status Uart::init()
     return IUart::Status::OK; // Initialization successful
 }
 
-IUart::Status Uart::transmit(char *data, const std::size_t len) // TODO: replace with etl::string
+IUart::Status Uart::transmit(const char *data, const std::size_t len) // TODO: replace with etl::string
 {
     if (data == nullptr || len == 0)
     {
@@ -47,7 +47,7 @@ IUart::Status Uart::transmit(char *data, const std::size_t len) // TODO: replace
         return IUart::Status::ERROR; // Failed to acquire mutex
     }
 
-    if (HAL_UART_Transmit_IT(m_huart, reinterpret_cast<uint8_t *>(data), len) != HAL_OK)
+    if (HAL_UART_Transmit_IT(m_huart, reinterpret_cast<uint8_t *>(const_cast<char *>(data)), len) != HAL_OK)
     {
         osMutexRelease(*m_mutexTx);
         return IUart::Status::ERROR; // Transmission failed
@@ -67,16 +67,16 @@ IUart::Status Uart::transmit(char *data, const std::size_t len) // TODO: replace
     return IUart::Status::OK; // Transmission successful
 }
 
-IUart::Status Uart::receive(char *data, std::size_t *len) // TODO: replace with etl::string
+IUart::Status Uart::receive(char *data) // TODO: replace with etl::string
 {
-    if (data == nullptr || len == nullptr || *len == 0)
+    if (data == nullptr)
     {
         return IUart::Status::NONE; // No data to receive
     }
 
     char rxChar;
     std::size_t rxIdx{0};
-    char recBuffer[RX_BUFFER_SIZE] = {0};
+    char recBuffer[UART_RX_BUFFER_SIZE] = {0};
 
     while (1)
     {
@@ -88,8 +88,7 @@ IUart::Status Uart::receive(char *data, std::size_t *len) // TODO: replace with 
         if (rxChar == '\n' || rxChar == '\r') // End of line
         {
             recBuffer[rxIdx] = '\0'; // Null-terminate the string
-            *len = rxIdx + 1; // Set the length of the received data
-            memcpy(data, recBuffer, *len); // Copy the received data to the output buffer
+            memcpy(data, recBuffer, rxIdx + 1); // Copy the received data to the output buffer
             if (osMessageQueueReset(*m_queueRx) != osOK)
             {
                 return IUart::Status::ERROR; // Failed to reset the message queue
