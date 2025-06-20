@@ -99,6 +99,8 @@ void Console::processLine(const char *line)
     // If no command matched, print an error message
     const char errorMsg[] = "Unknown command: ";
     print(errorMsg);
+    print(line);
+    print("\r\n");
     prompt(); // Prompt for the next command
 }
 
