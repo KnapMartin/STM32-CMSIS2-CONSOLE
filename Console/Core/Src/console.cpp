@@ -103,6 +103,7 @@ void Console::processLine(const char *line)
     print(line);
     print("\r\n");
     prompt(); // Prompt for the next command
+    print("\r\n"); // Print a new line after error message
 }
 
 void Console::prompt()

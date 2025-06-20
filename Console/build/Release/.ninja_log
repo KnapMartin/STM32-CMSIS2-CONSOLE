@@ -60,3 +60,5 @@
 1652	1895	1750424915488750764	cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_ll_gpio.c.obj	ebee058f6e746878
 3	426	1750426812164264763	CMakeFiles/Console.dir/Core/Src/console.cpp.obj	9c3f729c4a6b8984
 426	456	1750426812193265990	Console.elf	1be9bb99ead02617
+3	391	1750426955607028764	CMakeFiles/Console.dir/Core/Src/console.cpp.obj	9c3f729c4a6b8984
+392	422	1750426955636029873	Console.elf	1be9bb99ead02617
