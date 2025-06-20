@@ -12,6 +12,12 @@
 
 constexpr std::size_t CONS_MAX_COMMANDS{16};
 
+struct ArgPair
+{
+    char flag;
+    int32_t value;
+};
+
 class Console
 {
     public:
@@ -32,6 +38,7 @@ class Console
         Status registerCommand(const char *command, CommandHandler handler);
         Status run();
         Status print(const char *str);
+        static int parseArgs(const char* line, ArgPair* outArgs, int maxArgs);
 
     private:
         void processLine(const char *line);

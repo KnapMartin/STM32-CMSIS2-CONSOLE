@@ -130,7 +130,7 @@ const osThreadAttr_t loggerTask_attributes = {
 };
 /* Definitions for consoleTask */
 osThreadId_t consoleTaskHandle;
-uint32_t consoleTaskBuffer[128];
+uint32_t consoleTaskBuffer[512];
 osStaticThreadDef_t consoleTaskControlBlock;
 const osThreadAttr_t consoleTask_attributes = {
 	.name = "consoleTask",
@@ -1223,9 +1223,9 @@ void startLoggerTask(void *argument)
 
 /* USER CODE BEGIN Header_startConsoleTask */
 
-void printHelp(const char* str)
+void printHelp(const char *str)
 {
-	console.print("help func\r\n");
+	console.print("Available commands:\r\n");
 }
 
 /**
@@ -1236,8 +1236,31 @@ void printHelp(const char* str)
 /* USER CODE END Header_startConsoleTask */
 void startConsoleTask(void *argument)
 {
+	LOG_WRN("Console task started");
 	console.init();
+	// Register a free function
 	console.registerCommand("help", printHelp);
+
+	ArgPair args[8];
+	int argc = Console::parseArgs("-h 11 -D -a -l 22", args, 8);
+	for (int i = 0; i < argc; ++i)
+	{
+		console.print("Flag: ");
+		char flagStr[2] = {args[i].flag, 0};
+		console.print(flagStr);
+		console.print(" Value: ");
+		if (args[i].value != INT32_MIN)
+		{
+			char buf[16];
+			snprintf(buf, sizeof(buf), "%ld", (long)args[i].value);
+			console.print(buf);
+		}
+		else
+		{
+			console.print("(no value)");
+		}
+		console.print("\r\n");
+	}
 
 	for (;;)
 	{

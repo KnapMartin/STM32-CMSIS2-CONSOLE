@@ -1,8 +1,7 @@
 #include "console.h"
 
 Console::Console(Uart &uart)
-    : m_uart(uart)
-    , m_commandCount(0)
+    : m_uart(uart), m_commandCount(0)
 {
 }
 
@@ -91,7 +90,7 @@ void Console::processLine(const char *line)
         if (strncmp(line, command, cmdLen) == 0)
         {
             handler(line); // Call the command handler
-            prompt(); // Prompt for the next command
+            prompt();      // Prompt for the next command
             return;
         }
     }
@@ -108,4 +107,41 @@ void Console::prompt()
 {
     const char promptMsg[] = "> ";
     print(promptMsg); // Print the prompt message
+}
+
+int Console::parseArgs(const char* line, ArgPair* outArgs, int maxArgs)
+{
+    int count = 0;
+    const char* p = line;
+    while (*p && count < maxArgs)
+    {
+        // Skip whitespace
+        while (*p == ' ' || *p == '\t') ++p;
+        if (*p == '-' && *(p + 1) && *(p + 1) != ' ' && *(p + 1) != '\t')
+        {
+            char flagChar = *(p + 1);
+            p += 2;
+            // Skip whitespace
+            while (*p == ' ' || *p == '\t') ++p;
+            int32_t val = INT32_MIN; // Sentinel for "no value"
+            if (*p && *p != '-')
+            {
+                char* endptr;
+                val = strtol(p, &endptr, 10);
+                if (endptr != p)
+                {
+                    p = endptr;
+                }
+            }
+            outArgs[count].flag = flagChar;
+            outArgs[count].value = val;
+            ++count;
+        }
+        else
+        {
+            // Skip non-flag tokens
+            while (*p && *p != ' ' && *p != '\t') ++p;
+        }
+    }
+    return count;
 }
