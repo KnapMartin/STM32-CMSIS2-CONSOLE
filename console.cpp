@@ -45,7 +45,7 @@ Console::Status Console::run()
     char buffer[256]; // Buffer for receiving data
 
     // Receive data from UART
-    if (m_uart.receive(buffer) != IUart::Status::OK)
+    if (m_uart.receive(buffer) != Uart::Status::OK)
     {
         return Status::ERROR; // Reception failed
     }
@@ -63,7 +63,7 @@ Console::Status Console::print(const char *str)
         return Status::NONE; // No data to print
     }
 
-    if (m_uart.transmit(const_cast<char *>(str), strlen(str)) != IUart::Status::OK)
+    if (m_uart.transmit(const_cast<char *>(str), strlen(str)) != Uart::Status::OK)
     {
         return Status::ERROR; // Transmission failed
     }
